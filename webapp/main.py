@@ -1,11 +1,12 @@
-import os
-import base64
-from typing import Union
+from typing import Annotated
 from os.path import dirname, abspath, join
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Form
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from urllib.request import urlopen
+from urllib.parse import urlparse
+import json
+import starlette.status as status
 
 current_dir = dirname(abspath(__file__))
 static_path = join(current_dir, "static")
@@ -13,25 +14,31 @@ static_path = join(current_dir, "static")
 app = FastAPI()
 app.mount("/ui", StaticFiles(directory=static_path), name="ui")
 
-
-class Body(BaseModel):
-    length: Union[int, None] = 20
-
-
 @app.get('/')
 def root():
     html_path = join(static_path, "index.html")
     return FileResponse(html_path)
 
+@app.get("/apps/{app_id}")
+def view_app(app_id: str):
+    return { "app_id": app_id }
 
-@app.post('/generate')
-def generate(body: Body):
-    """
-    Generate a pseudo-random token ID of twenty characters by default. Example POST request body:
+@app.post("/apps")
+async def create_app(url: Annotated[str, Form(alias="url")]):
+    #TODO url validation
+    # An application is defined by the manifest so these terms can be used interchangibly
 
-    {
-        "length": 20
-    }
-    """
-    string = base64.b64encode(os.urandom(64))[:body.length].decode('utf-8')
-    return {'token': string}
+    # We use the host as the id for the app
+    #TODO find a way to avoid duplicate apps from hosts that have the same web manifest by using a more qualified
+    # comparison of manifests like comparing a hash or other distinguishing characteristics
+    components = urlparse(url)
+    app_id = components.netloc
+
+    # Get manifest from user provided url
+    #TODO error handling
+    response = urlopen(url)
+    manifest = json.loads(response.read())
+    # Persist application to database
+    # Return user to new page for app
+
+    return RedirectResponse(f"/apps/{app_id}", status_code=status.HTTP_303_SEE_OTHER)
