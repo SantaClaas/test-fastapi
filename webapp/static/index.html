@@ -1,49 +1,41 @@
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Codespaces & FastAPI</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/ui/bootstrap.min.css">
-    <style>
-  html, body, .container {
-    height: 100%;
-}
-.container {
-    display: table;
-    vertical-align: middle;
-}
-.vertical-center-row {
-    display: table-cell;
-    vertical-align: middle;
-}
-img{
-        cursor: pointer;
-}
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="vertical-center-row">
-        <div class="row">
-          <div class="col-lg-12">
-              <p style="font-size:168px">
-              <a style="text-decoration: none" href="https://azure.microsoft.com/?WT.mc_id=academic-77460-alfredodeza">🚀</a>
-              </p>
-            <div class="bs-component">
-              <h2>Containerized Python API
-              </h2>
-              <p>This is a containerized application that exposes a JSON API using <a href="https://fastapi.tiangolo.com/">FastAPI</a> with <a href="https://azure.microsoft.com/?WT.mc_id=academic-0000-alfredodeza">Azure!</a></p>
-              <p>Use the buttons below to make use of the interactive (OpenAPI) documentation for trying out the API dynamically.
-                or browse the project source.
-              </p>
-              <button onclick="window.location.href='/docs'" type="button" class="btn btn-info">Try it out</button>
-              <button onclick="window.location.href='https://github.com/microsoft/codespaces-project-template-py/'" type="button" class="btn btn-info">Project source</button>
-            </div>
-          </div>
+
+<head>
+  <meta charset="utf-8">
+  <title>Web App Store</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="/ui/output.css" rel="stylesheet">
+</head>
+
+<body class="p-4 h-screen grid place-content-center">
+  <article>
+
+    <div class="bg-white shadow sm:rounded-lg">
+      <div class="px-4 py-5 sm:p-6">
+        <h1 class="text-base font-semibold leading-6 text-gray-900">Add Web App</h1>
+        <div class="mt-2 max-w-xl text-sm text-gray-500">
+          <p>Enter the Web App's <span
+              class="font-mono bg-gray-100 text-indigo-600 tracking-wide rounded-sm px-1">.webmanifest</span> file url
+            to add
+            the App to
+            the store
+          </p>
         </div>
+        <form class="mt-5 sm:flex sm:items-center">
+          <div class="w-full sm:max-w-xs">
+            <label for="url" class="sr-only">Manifest Url</label>
+            <input type="url" name="manifest-url" id="url" required
+              class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              placeholder="https://example.com/app.webmanifest">
+          </div>
+          <button type="submit"
+            class="mt-3 inline-flex w-full items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:ml-3 sm:mt-0 sm:w-auto">Submit</button>
+        </form>
       </div>
     </div>
-  </body>
+  </article>
+
+</body>
+
 </html>
