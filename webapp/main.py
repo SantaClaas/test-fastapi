@@ -9,9 +9,9 @@ import json
 import starlette.status as status
 
 # from sql_app import crud, models, schemas
-from .sql_app.models import Base
-from .sql_app import schemas, crud, models
-from .sql_app.database import SessionLocal, engine
+from .data.models import Base
+from .data import schemas, crud, models
+from .data.database import SessionLocal, engine
 from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
 
@@ -58,7 +58,7 @@ def view_app(request: Request, app_id: str, database: Session = Depends(get_data
     # Get app
     app = crud.get_app(database, app_id)
 
-    if app == None:
+    if app is None:
         # TODO return not found page (can I do that with 404 status code and the browser not breaking?)
         return templates.TemplateResponse("app.html", {"request": request, "id": app.id, "name": app.name})
 
