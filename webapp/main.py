@@ -1,7 +1,7 @@
 from typing import Annotated
 from os.path import dirname, abspath, join
-from fastapi import FastAPI, Form, Depends
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi import FastAPI, Form, Depends, Request
+from fastapi.responses import FileResponse, RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from urllib.request import urlopen
 from urllib.parse import urlparse
@@ -13,6 +13,7 @@ from .sql_app.models import Base
 from .sql_app import schemas, crud, models
 from .sql_app.database import SessionLocal, engine
 from sqlalchemy.orm import Session
+from fastapi.templating import Jinja2Templates
 
 # Create tables
 # We just delete and recreate the database every new start and after changes to iterate quickly. In a real app we would
@@ -33,13 +34,17 @@ def get_database():
         database.close()
 
 
+current_directory = dirname(abspath(__file__))
 # Static files
-current_dir = dirname(abspath(__file__))
-static_path = join(current_dir, "static")
+static_path = join(current_directory, "static")
 
 app.mount("/ui", StaticFiles(directory=static_path), name="ui")
 
-temp_app = None
+# Templating
+template_path = join(current_directory, "templates")
+templates = Jinja2Templates(directory=template_path)
+
+# Routes
 
 
 @app.get('/')
@@ -48,9 +53,17 @@ def root():
     return FileResponse(html_path)
 
 
-@app.get("/apps/{app_id}")
-def view_app(app_id: str):
-    return {"app_id": app_id}
+@app.get("/apps/{app_id}", response_class=HTMLResponse)
+def view_app(request: Request, app_id: str, database: Session = Depends(get_database)):
+    # Get app
+    app = crud.get_app(database, app_id)
+
+    if app == None:
+        # TODO return not found page (can I do that with 404 status code and the browser not breaking?)
+        return templates.TemplateResponse("app.html", {"request": request, "id": app.id, "name": app.name})
+
+    # Render template
+    return templates.TemplateResponse("app.html", {"request": request, "id": app.id, "name": app.name})
 
 
 @app.post("/apps")
@@ -66,9 +79,8 @@ async def create_app(url: Annotated[str, Form(alias="url")], database: Session =
 
     # If app exists, return add app view with error message
     if crud.get_app(database, app_id):
-        # TODO use templating to add error
-        html_path = join(static_path, "index.html")
-        return FileResponse(html_path)
+        # TODO use templating to add error of already created with url to app page
+        return RedirectResponse(f"/apps/{app_id}", status_code=status.HTTP_303_SEE_OTHER)
 
     # Get manifest from user provided url
     # TODO request error handling
