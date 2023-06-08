@@ -4,11 +4,10 @@ from fastapi import FastAPI, Form, Depends, Request
 from fastapi.responses import FileResponse, RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from urllib.request import urlopen
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunsplit
 import json
 import starlette.status as status
 
-# from sql_app import crud, models, schemas
 from .data.models import Base
 from .data import schemas, crud, models
 from .data.database import SessionLocal, engine
@@ -38,7 +37,7 @@ current_directory = dirname(abspath(__file__))
 # Static files
 static_path = join(current_directory, "static")
 
-app.mount("/ui", StaticFiles(directory=static_path), name="ui")
+app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 # Templating
 template_path = join(current_directory, "templates")
@@ -48,9 +47,14 @@ templates = Jinja2Templates(directory=template_path)
 
 
 @app.get('/')
-def root():
-    html_path = join(static_path, "index.html")
-    return FileResponse(html_path)
+@app.get('/apps')
+def root(request: Request):
+    return templates.TemplateResponse("apps/index.html", {"request": request})
+
+
+@app.get("/apps/new")
+def view_new_app(request: Request):
+    return templates.TemplateResponse("apps/new.html", {"request": request})
 
 
 @app.get("/apps/{app_id}", response_class=HTMLResponse)
@@ -60,14 +64,35 @@ def view_app(request: Request, app_id: str, database: Session = Depends(get_data
 
     if app is None:
         # TODO return not found page (can I do that with 404 status code and the browser not breaking?)
-        return templates.TemplateResponse("app.html", {"request": request, "id": app.id, "name": app.name})
+        return templates.TemplateResponse("apps/detail.html", {"request": request, "id": app.id, "name": app.name})
+
+    # TODO check if image url is absolute or relative
+    # Build image source url
+    source = urlunsplit(("https", app.id, app.icons[0].source, "", ""))
 
     # Render template
-    return templates.TemplateResponse("app.html", {"request": request, "id": app.id, "name": app.name})
+    return templates.TemplateResponse(
+        "apps/detail.html",
+        {"request": request,
+         "id": app.id,
+         "name": app.name,
+         "description": app.description,
+         "source": source
+         })
+
+
+def createIconFor(app_id: str):
+    return lambda json: models.Icon(
+        app_id=app_id,
+        source=json["src"],
+        sizes=json["sizes"],
+        type=json["type"],
+        label=json.get("label", None),
+        purpose=json.get("purpose", "any"))
 
 
 @app.post("/apps")
-async def create_app(url: Annotated[str, Form(alias="url")], database: Session = Depends(get_database)):
+def create_app(url: Annotated[str, Form(alias="url")], database: Session = Depends(get_database)):
     # TODO url validation
     # An application is defined by the manifest so these terms can be used interchangibly
 
@@ -87,13 +112,29 @@ async def create_app(url: Annotated[str, Form(alias="url")], database: Session =
     response = urlopen(url)
     # TODO validate manifest
     # TODO handle deserialization error
+
     manifest = json.loads(response.read())
-    print(type(manifest["icons"]))
 
     # Persist application to database
     app = models.App(
-        id=app_id, name=manifest["name"], start_url=manifest["start_url"], description=manifest["description"])
+        id=app_id,
+        manifest_url=url,
+        name=manifest["name"],
+        start_url=manifest["start_url"],
+        description=manifest["description"])
+
+    # TODO use transaction to cancel creation in case icon write fails so we don't have an app without icons
     crud.create_app(database, app)
+
+    # Persist icons
+    print(type(manifest["icons"]))
+    icons = manifest["icons"]
+    icons = list(map(createIconFor(app_id), icons))
+
+    print(icons)
+    print(type(icons[0]))
+    print(icons[0])
+    crud.create_app_icons(database, icons)
 
     # Return user to new page for app
 

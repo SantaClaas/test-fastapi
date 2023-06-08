@@ -1,6 +1,12 @@
 from sqlalchemy.orm import Session
 
-from . import models, schemas
+from typing import Iterable
+from . import models
+
+
+# TODO implement pagination when app list gets too big
+def get_apps(database: Session):
+    return database.query(models.App)
 
 
 def get_app(database: Session, app_id: str):
@@ -11,13 +17,8 @@ def create_app(database: Session, app: models.App):
 
     database.add(app)
     database.commit()
-    database.refresh(app)
-    return app
 
 
-# def create_app_icon(database: Session, icon: schemas.IconCreate, app_id: str):
-#     model = models.Icon(**icon.dict(), app=app_id)
-#     database.add(model)
-#     database.commit()
-#     database.refresh(model)
-#     return model
+def create_app_icons(database: Session, icons: Iterable[models.Icon]):
+    database.add_all(icons)
+    database.commit()

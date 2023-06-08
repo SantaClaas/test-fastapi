@@ -3,14 +3,13 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Web App Store</title>
+    <title>{{ name }} - Web App Store</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="/ui/output.css" rel="stylesheet">
+    <link href="{{ url_for('static', path='/output.css') }}" rel="stylesheet">
 </head>
 
 <body class="p-4 h-screen grid place-content-center">
-    <p>{{ id }}</p>
-    <p>{{ name }}</p>
+    Apps overview
 </body>
 
 </html>
