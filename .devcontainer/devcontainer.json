@@ -12,7 +12,7 @@
 			// Use -bullseye variants on local on arm64/Apple Silicon.
 			"VARIANT": "3.10-bullseye",
 			// Options
-			"NODE_VERSION": "lts"
+			"NODE_VERSION": "*"
 		}
 	},
 
@@ -57,5 +57,6 @@
 	"remoteUser": "vscode",
 	"features": {
 		"azure-cli": "latest",
+		"ghcr.io/devcontainers/features/node:1": {}
 	}
 }
