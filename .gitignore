@@ -134,3 +134,6 @@ dmypy.json
 
 # Node specific
 node_modules/
+
+# Ignore generated database files
+*.db
