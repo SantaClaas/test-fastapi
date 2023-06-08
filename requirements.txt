@@ -1,4 +1,8 @@
+# Always use latest, if that is an issue down the road, then change it
 fastapi
 pydantic
 uvicorn[standard]
+# To ensure form support as recommended by FastAPI
 python-multipart
+# For database stuff
+sqlalchemy
