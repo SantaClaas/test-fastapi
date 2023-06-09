@@ -63,7 +63,8 @@ def root(request: Request, database: Session = Depends(get_database)):
     apps = map(lambda app:
                {"name": app.name,
                 "description": app.description,
-                "icon_url": getIconUrl(app)},
+                "icon_url": getIconUrl(app),
+                "id": app.id},
                crud.get_apps(database))
 
     return templates.TemplateResponse("apps/index.html", {"request": request, "apps": apps})
