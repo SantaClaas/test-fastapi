@@ -17,3 +17,7 @@ def create_app(session: Session, app: models.App):
 
     session.add(app)
     session.commit()
+
+
+def get_categories(session: Session):
+    return session.query(models.Category)
