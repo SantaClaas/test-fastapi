@@ -11,18 +11,8 @@
 <body>
     <header class="p-8">
 
-        <div class="md:flex md:items-center md:justify-between">
-            <div class="min-w-0 flex-1">
-                <h1 class="text-4xl font-bold leading-7 text-gray-900 sm:truncate sm:text-5xl sm:tracking-tight">Apps
-                </h1>
-            </div>
-            <div class="mt-4 flex md:ml-4 md:mt-0">
-                <!-- <button type="button"
-                    class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Edit</button> -->
-                <a type="button" href="/apps/new"
-                    class="ml-3 inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">New</a>
-            </div>
-        </div>
+        <h1 class="text-4xl font-bold leading-7 text-gray-900 sm:truncate sm:text-5xl sm:tracking-tight">Apps
+        </h1>
 
     </header>
 
@@ -34,24 +24,49 @@
                            focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
                     <img src="{{ app['icon_url'] }}" alt="App icon for {{ app['name'] }}"
                         class="pointer-events-none w-full h-full object-center group-hover:opacity-75">
-                    <a href="apps/{{ app['id'] }}" class="absolute inset-0 focus:outline-none ">
-                        <span class="sr-only">View details for {{ app["name"] }} </span>
-                    </a>
-                </section>
-                <section class="p-4 group-hover:opacity-75">
 
-                    <h2
-                        class="pointer-events-none block truncate text-base font-normal text-gray-900 group-hover:opacity-75">
+                </section>
+                <section class="p-4">
+
+                    <h2 class="pointer-events-none block truncate text-base font-normal text-gray-900">
                         {{
                         app["name"]
                         }}
                     </h2>
 
-                    <p class="pointer-events-none block text-sm font-normal text-gray-500 group-hover:opacity-75">{{
+                    <p class="pointer-events-none block text-sm font-normal text-gray-500 ">{{
                         app["description"] }}</p>
                 </section>
+                <a href="apps/{{ app['id'] }}" class="absolute inset-0 focus:outline-none ">
+                    <span class="sr-only">View details for {{ app["name"] }} </span>
+                </a>
             </li>
             {% endfor %}
+            <li class="relative bg-gray-100 rounded-2xl group hover:opacity-75">
+                <section class="block aspect-square overflow-hidden rounded-xl bg-gray-200 focus-within:ring-2
+                           focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
+                    <svg class="fill-none stroke-gray-300 pointer-events-none w-full h-full object-center group-hover:opacity-75"
+                        fill="none" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true">
+                        <!-- <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"></path> -->
+                        <path stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                    </svg>
+                    <!-- <img src="" alt="" class="pointer-events-none w-full h-full object-center group-hover:opacity-75"> -->
+
+                </section>
+                <section class="p-4">
+
+                    <h2 class="pointer-events-none block truncate text-base font-normal text-gray-900 ">
+                        Add new App
+                    </h2>
+
+                    <p class="pointer-events-none block text-sm font-normal text-gray-500">Add an
+                        app from its web manifest url</p>
+                </section>
+                <a href="apps/new" class="absolute inset-0 focus:outline-none ">
+                    <span class="sr-only">Add new App</span>
+                </a>
+            </li>
         </ul>
     </main>
 

@@ -896,6 +896,26 @@ select {
   background-color: rgb(229 231 235 / var(--tw-bg-opacity));
 }
 
+.fill-none {
+  fill: none;
+}
+
+.stroke-gray-600 {
+  stroke: #4b5563;
+}
+
+.stroke-gray-500 {
+  stroke: #6b7280;
+}
+
+.stroke-gray-300 {
+  stroke: #d1d5db;
+}
+
+.stroke-gray-400 {
+  stroke: #9ca3af;
+}
+
 .object-cover {
   -o-object-fit: cover;
      object-fit: cover;
