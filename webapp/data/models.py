@@ -1,7 +1,14 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship, mapped_column
 
 from .database import Base
+
+app_category = Table(
+    "app_category",
+    Base.metadata,
+    Column("app_id", ForeignKey("apps.id"), primary_key=True),
+    Column("category_name", ForeignKey("categories.name"), primary_key=True)
+)
 
 
 class App(Base):
@@ -15,12 +22,16 @@ class App(Base):
     # Required manifest members
     name = Column(String)
     # (icons, in other table)
-    icons = relationship("Icon", back_populates="app")
+    icons = relationship("Icon", back_populates="app",
+                         cascade="all, delete-orphan")
     start_url = Column(String)
     # (display and/or display_override, currently not needed by us)
 
     # Optional manifest members
     description = Column(String, nullable=True)
+    # Technically also a limited set we should check but don't
+    categories = relationship(
+        "Category", back_populates="apps", secondary=app_category)
 
 # See https://developer.mozilla.org/en-US/docs/Web/Manifest/icons and https://w3c.github.io/manifest/#icons-member and
 # https://w3c.github.io/manifest/#manifest-image-resources and https://www.w3.org/TR/image-resource/#dfn-image-resource
@@ -45,3 +56,14 @@ class Icon(Base):
     purpose = Column(String, default="any")
 
     app = relationship("App", back_populates="icons")
+
+
+class Category(Base):
+    __tablename__ = "categories"
+
+    name = Column(String, primary_key=True, index=True)
+    apps = relationship("App", back_populates="categories",
+                        secondary=app_category)
+
+    def __str__(self):
+        return self.name

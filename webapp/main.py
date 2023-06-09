@@ -133,26 +133,29 @@ def create_app(url: Annotated[str, Form(alias="url")], database: Session = Depen
 
     manifest = json.loads(response.read())
 
-    # Persist application to database
-    app = models.App(
-        id=app_id,
-        manifest_url=url,
-        name=manifest["name"],
-        start_url=manifest["start_url"],
-        description=manifest["description"])
-
-    # TODO use transaction to cancel creation in case icon write fails so we don't have an app without icons
-    crud.create_app(database, app)
-
     # Persist icons
     print(type(manifest["icons"]))
     icons = manifest["icons"]
     icons = list(map(createIconFor(app_id), icons))
 
-    print(icons)
-    print(type(icons[0]))
-    print(icons[0])
-    crud.create_app_icons(database, icons)
+    # Persist categories
+    categories = list(map(lambda category: models.Category(
+        name=category), manifest.get("categories", [])))
+
+    print(len(categories), categories)
+
+    # Persist application to database
+    app = models.App(
+        id=app_id,
+        manifest_url=url,
+        name=manifest["name"],
+        icons=icons,
+        start_url=manifest["start_url"],
+        description=manifest["description"],
+        categories=categories)
+
+    # TODO use transaction to cancel creation in case icon write fails so we don't have an app without icons
+    crud.create_app(database, app)
 
     # Return user to new page for app
 
