@@ -47,12 +47,16 @@ templates = Jinja2Templates(directory=template_path)
 
 
 def getIconUrl(app: models.App):
-    print(f"'{app.icons[0].purpose}'", list(
-        filter(lambda icon: icon.purpose == "any", app.icons)))
     # We use the last one declared that is appropiate as per spec https://w3c.github.io/manifest/#icons-member
     # Appropiate for us in this case is purpose not monochrome and maskable
     icon = list(filter(lambda icon: icon.purpose == "any", app.icons))[-1]
 
+    url = urlparse(icon.source)
+    # If the url is absolute (not relative/has a host)
+    if url.netloc:
+        return icon.source
+
+    # Else substitute the host
     return urlunsplit(("https", app.id, icon.source, "", ""))
 
 
