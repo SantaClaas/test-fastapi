@@ -16,7 +16,7 @@ on:
 
 # Allow one concurrent deployment
 concurrency:
-  group: "deploy"
+  group: "pypi"
   cancel-in-progress: true
 
 permissions:
