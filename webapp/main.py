@@ -46,10 +46,27 @@ templates = Jinja2Templates(directory=template_path)
 # Routes
 
 
-@app.get('/')
-@app.get('/apps')
-def root(request: Request):
-    return templates.TemplateResponse("apps/index.html", {"request": request})
+def getIconUrl(app: models.App):
+    print(f"'{app.icons[0].purpose}'", list(
+        filter(lambda icon: icon.purpose == "any", app.icons)))
+    # We use the last one declared that is appropiate as per spec https://w3c.github.io/manifest/#icons-member
+    # Appropiate for us in this case is purpose not monochrome and maskable
+    icon = list(filter(lambda icon: icon.purpose == "any", app.icons))[-1]
+
+    return urlunsplit(("https", app.id, icon.source, "", ""))
+
+
+@app.get('/', response_class=HTMLResponse)
+@app.get('/apps', response_class=HTMLResponse)
+def root(request: Request, database: Session = Depends(get_database)):
+
+    apps = map(lambda app:
+               {"name": app.name,
+                "description": app.description,
+                "icon_url": getIconUrl(app)},
+               crud.get_apps(database))
+
+    return templates.TemplateResponse("apps/index.html", {"request": request, "apps": apps})
 
 
 @app.get("/apps/new")
@@ -68,7 +85,7 @@ def view_app(request: Request, app_id: str, database: Session = Depends(get_data
 
     # TODO check if image url is absolute or relative
     # Build image source url
-    source = urlunsplit(("https", app.id, app.icons[0].source, "", ""))
+    source = getIconUrl(app)
 
     # Render template
     return templates.TemplateResponse(
