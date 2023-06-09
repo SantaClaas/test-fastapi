@@ -68,7 +68,8 @@ def root(request: Request, database: Session = Depends(get_database)):
                {"name": app.name,
                 "description": app.description,
                 "icon_url": getIconUrl(app),
-                "id": app.id},
+                "id": app.id,
+                "categories": map(lambda category: category.name, app.categories)},
                crud.get_apps(database))
 
     return templates.TemplateResponse("apps/index.html", {"request": request, "apps": apps})
@@ -114,7 +115,7 @@ def createIconFor(app_id: str):
 
 
 @app.post("/apps")
-def create_app(url: Annotated[str, Form(alias="url")], database: Session = Depends(get_database)):
+def create_app(url: Annotated[str, Form(alias="url")], session: Session = Depends(get_database)):
     # TODO url validation
     # An application is defined by the manifest so these terms can be used interchangibly
 
@@ -125,7 +126,7 @@ def create_app(url: Annotated[str, Form(alias="url")], database: Session = Depen
     app_id = components.netloc
 
     # If app exists, return add app view with error message
-    if crud.get_app(database, app_id):
+    if crud.get_app(session, app_id):
         # TODO use templating to add error of already created with url to app page
         return RedirectResponse(f"/apps/{app_id}", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -138,15 +139,21 @@ def create_app(url: Annotated[str, Form(alias="url")], database: Session = Depen
     manifest = json.loads(response.read())
 
     # Persist icons
-    print(type(manifest["icons"]))
     icons = manifest["icons"]
     icons = list(map(createIconFor(app_id), icons))
 
     # Persist categories
-    categories = list(map(lambda category: models.Category(
-        name=category), manifest.get("categories", [])))
+    # IDK how to avoid unique insert issue with the ORM so we filter categories to include only unique categories
+    existing_categories = frozenset(map(
+        lambda category: category.name, crud.get_categories(session)))
 
-    print(len(categories), categories)
+    categories = filter(
+        lambda category: category not in existing_categories,
+        manifest.get("categories", []))
+
+    # To model
+    categories = list(map(lambda category: models.Category(
+        name=category), categories))
 
     # Persist application to database
     app = models.App(
@@ -159,7 +166,7 @@ def create_app(url: Annotated[str, Form(alias="url")], database: Session = Depen
         categories=categories)
 
     # TODO use transaction to cancel creation in case icon write fails so we don't have an app without icons
-    crud.create_app(database, app)
+    crud.create_app(session, app)
 
     # Return user to new page for app
 
