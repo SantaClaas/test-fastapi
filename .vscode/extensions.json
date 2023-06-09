@@ -3,6 +3,7 @@
         "bradlc.vscode-tailwindcss",
         "ms-azuretools.vscode-docker",
         "ms-python.python",
-        "wholroyd.jinja"
+        "wholroyd.jinja",
+        "github.vscode-github-actions"
     ]
 }

@@ -42,7 +42,8 @@
 				"ms-python.vscode-pylance",
 				"bradlc.vscode-tailwindcss",
 				"ms-azuretools.vscode-docker",
-				"wholroyd.jinja"
+				"wholroyd.jinja",
+				"github.vscode-github-actions"
 			]
 		}
 	},
