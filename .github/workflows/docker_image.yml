@@ -1,12 +1,12 @@
-name: Docker Image CI
+name: Build the Codespaces container image (Docker Image CI)
 
 on:
   # Using pattern as described in https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#using-filters
   pull_request:
-    branches: 
+    branches:
       - main
   push:
-    branches: 
+    branches:
       - main
   # Allow mannually trigger
   workflow_dispatch:
