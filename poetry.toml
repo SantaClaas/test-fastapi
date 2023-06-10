@@ -2,5 +2,5 @@
 # Not necessary since we are in a container but should be disabled possibly not not screw with poetry dependencies and
 # if not used in dev container
 # When this is off remember to update python interpreter path
-create = false
-in-project = false
+create = true
+in-project = true
