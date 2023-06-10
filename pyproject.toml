@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "wapp"
+version = "0"
+description = "Improve Web App discoverability"
+authors = ["Claas <claas.moehlmann@outlook.com>"]
+license = "Apache 2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.96.0"
+uvicorn = "^0.22.0"
+# For database stuff
+sqlalchemy = "^2.0.15"
+# For HTML templating
+jinja2 = "^3.1.2"
+# To ensure form support as recommended by FastAPI
+python-multipart = "^0.0.6"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -8,5 +8,5 @@ FROM mcr.microsoft.com/devcontainers/python:0-${VARIANT}
 # Please tell me if my assumption is wrong
 RUN . ${NVM_DIR}/nvm.sh && nvm install --lts
 
-# Installing poetry with pipx from imag https://python-poetry.org/docs/#installing-with-pipx
-RUN pipx install poetry
+# Installing poetry with pipx from image https://python-poetry.org/docs/#installing-with-pipx
+RUN pip3 install poetry
