@@ -43,7 +43,8 @@
 				"bradlc.vscode-tailwindcss",
 				"ms-azuretools.vscode-docker",
 				"wholroyd.jinja",
-				"github.vscode-github-actions"
+				"github.vscode-github-actions",
+				"bungcip.better-toml"
 			]
 		}
 	},
