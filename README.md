@@ -6,10 +6,12 @@ TODO explain where the motivation is coming from and what this intends to solve
 
 ### 📏 Scope
 #### What is included
-- Add apps from their pages
+- Add apps from their page or manifest url
 - View Apps in a list
+##### TODO
 - View details of an app
 - Persist apps through sessions
+- Delete an app
 #### What is left out
 - Authentication and authorization
 
