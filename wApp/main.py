@@ -173,7 +173,7 @@ def create_app(url: Annotated[str, Form(alias="url")], session: Session = Depend
     return RedirectResponse(f"/apps/{app_id}", status_code=status.HTTP_303_SEE_OTHER)
 
 
-# Run with "poetry run python -m webapp.main"
+# Run with "poetry run python -m wApp.main"
 # Based on https://stackoverflow.com/questions/63177681/is-there-a-difference-between-running-fastapi-from-uvicorn-command-in-dockerfile
 if __name__ == "__main__":
-    uvicorn.run("webapp.main:app")
+    uvicorn.run("wApp.main:app")

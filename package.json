@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "A web app store to improve web app discoverability",
   "scripts": {
-    "start": "tailwindcss -i ./webapp/input.css -o ./webapp/static/output.css --watch"
+    "start": "tailwindcss -i ./wApp/input.css -o ./wApp/static/output.css --watch"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.3",
