@@ -23,8 +23,14 @@ jobs:
     steps:
     - name: 🛎️ Checkout
       uses: actions/checkout@v3
-    - name: 📦🛫 Build and publish to pypi
-      uses: JRubics/poetry-publish@v1.17
+    - name: Set up Python
+      uses: actions/setup-python@v3
       with:
-        pypi_token: ${{ secrets.PYPI_API_TOKEN }}
-        ignore_dev_requirements: "yes"
+        python-version: '3.x'
+    - name: 🧑‍🎨 Install poetry
+      run: pip install poetry
+    - name: 📦🛫 Build and publish to pypi
+      run: |
+        python -m build
+        poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
+        poetry publish
