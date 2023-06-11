@@ -6,13 +6,13 @@
     "configurations": [
         // From https://github.com/python-poetry/poetry/issues/5354
         {
-            "name": "wApp",
+            "name": "wappstore",
             "type": "python",
             "request": "launch",
             "python": "${workspaceFolder}/.venv/bin/python",
             "module": "uvicorn",
             "args": [
-                "wApp.main:app",
+                "wappstore.main:app",
                 "--reload"
             ],
             "jinja": true,

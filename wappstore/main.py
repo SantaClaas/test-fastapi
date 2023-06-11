@@ -84,23 +84,23 @@ def view_new_app(request: Request):
 @app.get("/apps/{app_id}", response_class=HTMLResponse)
 def view_app(request: Request, app_id: str, database: Session = Depends(get_database)):
     # Get app
-    app = crud.get_app(database, app_id)
+    web_app = crud.get_app(database, app_id)
 
-    if app is None:
+    if web_app is None:
         # TODO return not found page (can I do that with 404 status code and the browser not breaking?)
-        return templates.TemplateResponse("apps/detail.html", {"request": request, "id": app.id, "name": app.name})
+        return templates.TemplateResponse("apps/detail.html", {"request": request, "id": web_app.id, "name": web_app.name})
 
     # TODO check if image url is absolute or relative
     # Build image source url
-    source = getIconUrl(app)
+    source = getIconUrl(web_app)
 
     # Render template
     return templates.TemplateResponse(
         "apps/detail.html",
         {"request": request,
-         "id": app.id,
-         "name": app.name,
-         "description": app.description,
+         "id": web_app.id,
+         "name": web_app.name,
+         "description": web_app.description,
          "source": source
          })
 
@@ -157,7 +157,7 @@ def create_app(url: Annotated[str, Form(alias="url")], session: Session = Depend
         name=category), categories))
 
     # Persist application to database
-    app = models.App(
+    web_app = models.App(
         id=app_id,
         manifest_url=url,
         name=manifest["name"],
@@ -166,14 +166,14 @@ def create_app(url: Annotated[str, Form(alias="url")], session: Session = Depend
         description=manifest["description"],
         categories=categories)
 
-    crud.create_app(session, app)
+    crud.create_app(session, web_app)
 
     # Return user to new page for app
 
     return RedirectResponse(f"/apps/{app_id}", status_code=status.HTTP_303_SEE_OTHER)
 
 
-# Run with "poetry run python -m wApp.main"
+# Run with "poetry run python -m wappstore.main"
 # Based on https://stackoverflow.com/questions/63177681/is-there-a-difference-between-running-fastapi-from-uvicorn-command-in-dockerfile
 if __name__ == "__main__":
     uvicorn.run("wApp.main:app")

@@ -12,6 +12,7 @@ TODO explain where the motivation is coming from and what this intends to solve
 - View details of an app
 - Persist apps through sessions
 - Delete an app
+- Minify TailwindCSS output for production
 #### What is left out
 - Authentication and authorization
 
@@ -35,3 +36,6 @@ TODO links
 Things I might want to add or try out
 - Try installing third party apps by returning their manifest url (with adapted links) as manifest in the HTML for the browser to pick up
 - Use picture element with source elements representing the manifest icons to let browser decide which one to load to improve speed
+
+## Known Issues
+When starting the container VS Code might complain that the Python Extension has not loaded or needs to be installed. Just follow VS Code recommendations and you should be fine.
