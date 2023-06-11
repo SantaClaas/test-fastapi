@@ -1,0 +1,30 @@
+
+name: Publish Python Package
+
+on:
+  push:
+    branches: ['main']
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pypi"
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🛎️ Checkout
+      uses: actions/checkout@v3
+    - name: 📦🛫 Build and publish to pypi
+      uses: JRubics/poetry-publish@v1.17
+      with:
+        pypi_token: ${{ secrets.PYPI_API_TOKEN }}
+        ignore_dev_requirements: "yes"
