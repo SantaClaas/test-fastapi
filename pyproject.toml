@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "wApp"
+name = "wapp"
 version = "0"
 description = "Improve Web App discoverability"
 authors = ["Claas <claas.moehlmann@outlook.com>"]
