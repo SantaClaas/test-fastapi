@@ -1,3 +1,4 @@
+import uvicorn
 from typing import Annotated
 from os.path import dirname, abspath, join
 from fastapi import FastAPI, Form, Depends, Request
@@ -9,7 +10,7 @@ import json
 import starlette.status as status
 
 from .data.models import Base
-from .data import schemas, crud, models
+from .data import crud, models
 from .data.database import SessionLocal, engine
 from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
@@ -165,9 +166,14 @@ def create_app(url: Annotated[str, Form(alias="url")], session: Session = Depend
         description=manifest["description"],
         categories=categories)
 
-    # TODO use transaction to cancel creation in case icon write fails so we don't have an app without icons
     crud.create_app(session, app)
 
     # Return user to new page for app
 
     return RedirectResponse(f"/apps/{app_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+# Run with "poetry run python -m webapp.main"
+# Based on https://stackoverflow.com/questions/63177681/is-there-a-difference-between-running-fastapi-from-uvicorn-command-in-dockerfile
+if __name__ == "__main__":
+    uvicorn.run("webapp.main:app")
