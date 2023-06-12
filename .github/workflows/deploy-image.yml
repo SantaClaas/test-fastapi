@@ -65,6 +65,8 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
+    - name: test
+      run: echo ${{ github.sha }}
     - name: Deploy to Azure Web App
       id: deploy-to-webapp
       uses: azure/webapps-deploy@v2
@@ -72,4 +74,4 @@ jobs:
         app-name: 'wappstore'
         slot-name: 'production'
         publish-profile: ${{ secrets.AzureAppService_PublishProfile_16b5a170ede74b9ca2804776934c5b2d }}
-        images: 'ghcr.io/santaclaas/wapp:main'
+        images: 'ghcr.io/santaclaas/wapp:${{ github.sha }}'
