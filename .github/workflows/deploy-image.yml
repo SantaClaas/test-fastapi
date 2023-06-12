@@ -74,4 +74,4 @@ jobs:
         app-name: 'wappstore'
         slot-name: 'production'
         publish-profile: ${{ secrets.AzureAppService_PublishProfile_16b5a170ede74b9ca2804776934c5b2d }}
-        images: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}'
+        images: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main'
