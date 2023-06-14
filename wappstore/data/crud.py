@@ -14,8 +14,12 @@ def get_app(session: Session, app_id: str):
 
 
 def create_app(session: Session, app: models.App):
-
     session.add(app)
+    session.commit()
+
+
+def delete_app(session: Session, app_id: str):
+    session.query(models.App).filter_by(id=app_id).delete()
     session.commit()
 
 

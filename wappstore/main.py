@@ -68,6 +68,7 @@ def getPrimaryIconUrl(app: models.App):
 
 @app.get('/', response_class=HTMLResponse)
 @app.get('/apps', response_class=HTMLResponse)
+@app.get('/apps/delete', response_class=HTMLResponse)
 def root(request: Request, database: Session = Depends(get_database)):
 
     apps = map(lambda app:
@@ -78,12 +79,18 @@ def root(request: Request, database: Session = Depends(get_database)):
                 "categories": map(lambda category: category.name, app.categories)},
                crud.get_apps(database))
 
-    return templates.TemplateResponse("apps/index.html", {"request": request, "apps": apps})
+    return templates.TemplateResponse("apps/index.html", {"request": request, "apps": apps, "is_delete": request.url.path == "/apps/delete"})
 
 
 @app.get("/apps/new")
 def view_new_app(request: Request):
     return templates.TemplateResponse("apps/new.html", {"request": request})
+
+
+@app.get('/apps/{app_id}/delete')
+def delete_app(app_id: str, database: Session = Depends(get_database)):
+    crud.delete_app(database, app_id)
+    return RedirectResponse("/apps/delete", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @app.get("/apps/{app_id}", response_class=HTMLResponse)
