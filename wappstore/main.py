@@ -2,7 +2,7 @@ import uvicorn
 from typing import Annotated
 from os.path import dirname, abspath, join
 from fastapi import FastAPI, Form, Depends, Request
-from fastapi.responses import FileResponse, RedirectResponse, HTMLResponse
+from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from urllib.request import urlopen
 from urllib.parse import urlparse, urlunsplit
@@ -14,6 +14,7 @@ from .data import crud, models
 from .data.database import SessionLocal, engine
 from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
+import httpx
 
 # Create tables
 # We just delete and recreate the database every new start and after changes to iterate quickly. In a real app we would
@@ -46,19 +47,23 @@ templates = Jinja2Templates(directory=template_path)
 
 # Routes
 
+# Ensures the provided url is absolute. If not it uses the provided host to form an absolute url
+
+
+def ensure_is_absolute(url: str, host: str):
+    is_absolute = bool(urlparse(url).netloc)
+    if is_absolute:
+        return url
+    # TODO write test that this includes fragments and queries
+    return urlunsplit(("https", host, url, "", ""))
+
 
 def getIconUrl(app: models.App):
     # We use the last one declared that is appropiate as per spec https://w3c.github.io/manifest/#icons-member
     # Appropiate for us in this case is purpose not monochrome and maskable
     icon = list(filter(lambda icon: icon.purpose == "any", app.icons))[-1]
 
-    url = urlparse(icon.source)
-    # If the url is absolute (not relative/has a host)
-    if url.netloc:
-        return icon.source
-
-    # Else substitute the host
-    return urlunsplit(("https", app.id, icon.source, "", ""))
+    return ensure_is_absolute(icon.source, app.id)
 
 
 @app.get('/', response_class=HTMLResponse)
@@ -115,8 +120,41 @@ def createIconFor(app_id: str):
         purpose=json.get("purpose", "any"))
 
 
+def extract_manifest_url(content: str):
+    # Extract manifest url
+    # We need to find something like <link rel="manifest" href="..."> but attributes can be in different order
+    # TODO might need to add check because simple quotes are allowed too?
+    relationship_index = content.find("rel=\"manifest\"")
+    if relationship_index == -1:
+        # A tuple of result and error message
+        return None, "Could not find manifest url"
+
+    # Define boundaries
+    element_end = content.find(">", relationship_index)
+
+    # Only search in string before relationship since relationship is in the middle of the link element
+    element_start = content.rfind("<", 0, relationship_index)
+
+    link_element = content[element_start:element_end]
+
+    href_key = "href=\""
+    # Find href in link element
+    href_key_start = link_element.find(href_key)
+
+    if href_key_start == -1:
+        # TODO fail if invalid and no href
+        return None, "Invalid manifest link, missing href"
+
+    href_key_end = href_key_start + len(href_key)
+    # Find end of href
+    end_href = link_element.find('"', href_key_end)
+
+    href = link_element[href_key_end:end_href]
+    return href, None
+
+
 @app.post("/apps")
-def create_app(url: Annotated[str, Form(alias="url")], session: Session = Depends(get_database)):
+def create_app(request: Request, url: Annotated[str, Form(alias="url")], session: Session = Depends(get_database)):
     # TODO url validation
     # An application is defined by the manifest so these terms can be used interchangibly
 
@@ -132,12 +170,50 @@ def create_app(url: Annotated[str, Form(alias="url")], session: Session = Depend
         return RedirectResponse(f"/apps/{app_id}", status_code=status.HTTP_303_SEE_OTHER)
 
     # Get manifest from user provided url
-    # TODO request error handling
-    response = urlopen(url)
+
+    response = httpx.get(url)
+
+    # Twitter sets a cookie in a redirect
+    # TODO change to "if page wants to set cookie"
+    # TODO add maximum retry count to not loop endlessly
+    while response.status_code == httpx.codes.FOUND:
+        new_url = response.headers["location"]
+        cookie: str = response.headers.get("Set-Cookie")
+        # Use same host as before if it is relative
+        new_url = ensure_is_absolute(new_url, components.netloc)
+
+        # TODO fail if no cookie
+        headers = {"Cookie": cookie.split(';')[0]}
+        response = httpx.get(url, headers=headers)
+
+    # TODO fail if no content type
+    # If response is HTML, find url to manifest
+    content_type: str = response.headers.get("content-type")
+
+    if content_type.startswith("text/html"):
+
+        # This should be improved later as we read and allocate the whole content but we only need a small section from
+        # the head
+        content = response.text
+        manifest_url, error = extract_manifest_url(content)
+        if error is not None:
+            # TODO add error to template
+            return templates.TemplateResponse("apps/new.html", {"request": request})
+
+        # Get manifest
+        manifest_url = ensure_is_absolute(manifest_url, components.netloc)
+        response = httpx.get(manifest_url)
+        content_type = response.headers.get("content-type")
+        # It is still technically possible that the server returns a valid manifest with wrong content type but we
+        # assume this is very unlikely
+        if not content_type.startswith("application/manifest+json") and not content_type.startswith("application/json"):
+            # TODO error invalid response
+            return templates.TemplateResponse("apps/new.html", {"request": request})
+
+    # else if response is json+manifest, json, try deserialize manifest
     # TODO validate manifest
     # TODO handle deserialization error
-
-    manifest = json.loads(response.read())
+    manifest = json.loads(response.text)
 
     # Persist icons
     icons = manifest["icons"]

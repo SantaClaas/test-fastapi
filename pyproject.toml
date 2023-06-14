@@ -17,6 +17,8 @@ sqlalchemy = "^2.0.15"
 jinja2 = "^3.1.2"
 # To ensure form support as recommended by FastAPI
 python-multipart = "^0.0.6"
+# Make http requests eaiser (urlopen is hard to work with or I am unfamiliar with it so currently it is annoying)
+httpx = "^0.24.1"
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^2.17.4"
