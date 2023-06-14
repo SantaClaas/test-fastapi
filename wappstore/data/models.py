@@ -33,6 +33,9 @@ class App(Base):
     # Technically also a limited set we should check but don't
     categories = relationship(
         "Category", back_populates="apps", secondary=app_category)
+
+    screenshots = relationship(
+        "Screenshot", back_populates="app", cascade="all, delete-orphan")
     # direction = Column(String, default="auto")
     # # The language of the manifests localizable members
     # language = Column(String, nullable=True)
@@ -78,3 +81,17 @@ class Category(Base):
 
     def __str__(self):
         return self.name
+
+
+class Screenshot(Base):
+    __tablename__ = "screenshots"
+
+    id = Column(Integer, primary_key=True, index=True)
+    app_id = Column(String, ForeignKey("apps.id"))
+    source = Column(String)
+    # This should be split up later since it is not atomic to follow normalization rules
+    sizes = Column(String)
+    # This should refer to MIME types
+    type = Column(String)
+
+    app = relationship("App", back_populates="screenshots")

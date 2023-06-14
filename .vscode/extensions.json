@@ -4,7 +4,7 @@
         "ms-azuretools.vscode-docker",
         "wholroyd.jinja",
         "github.vscode-github-actions",
-        // "ms-python.python",
-        "bungcip.better-toml"
+        "bungcip.better-toml",
+        "ms-python.python"
     ]
 }

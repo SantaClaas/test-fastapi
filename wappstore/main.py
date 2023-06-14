@@ -106,7 +106,8 @@ def view_app(request: Request, app_id: str, database: Session = Depends(get_data
          "id": web_app.id,
          "name": web_app.name,
          "description": web_app.description,
-         "source": source
+         "source": source,
+         "screenshots": web_app.screenshots
          })
 
 
@@ -118,6 +119,14 @@ def createIconFor(app_id: str):
         type=json["type"],
         label=json.get("label", None),
         purpose=json.get("purpose", "any"))
+
+
+def createScreenshotFor(app_id: str):
+    return lambda json: models.Screenshot(
+        app_id=app_id,
+        source=json["src"],
+        sizes=json["sizes"],
+        type=json["type"])
 
 
 def extract_manifest_url(content: str):
@@ -232,6 +241,10 @@ def create_app(request: Request, url: Annotated[str, Form(alias="url")], session
     categories = list(map(lambda category: models.Category(
         name=category), categories))
 
+    # Persist screenshots
+    screenshots = list(map(createScreenshotFor(app_id),
+                       manifest.get("screenshots", [])))
+
     # Persist application to database
     web_app = models.App(
         id=app_id,
@@ -240,7 +253,8 @@ def create_app(request: Request, url: Annotated[str, Form(alias="url")], session
         icons=icons,
         start_url=manifest["start_url"],
         description=manifest["description"],
-        categories=categories)
+        categories=categories,
+        screenshots=screenshots)
 
     crud.create_app(session, web_app)
 

@@ -13,6 +13,7 @@ TODO explain where the motivation is coming from and what this intends to solve
 - Persist apps through sessions
 - Delete an app
 - Minify TailwindCSS output for production
+- Update app with new manifest
 #### What is left out
 - Authentication and authorization
     - Therefore there is also no persistence of the database between deploys
