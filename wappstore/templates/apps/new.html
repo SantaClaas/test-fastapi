@@ -10,10 +10,20 @@
     <link href="static/output.css" rel="stylesheet">
 </head>
 
-<body class="p-4 h-screen grid place-content-center">
-    <article>
+<body class="p-4 h-screen ">
+    <nav class="absolute top-4 left-4">
+        <a href="/apps"
+            class="rounded-full block px-2.5 py-1 text-xs font-semibold text-indigo-600 shadow-sm hover:text-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            <svg class="w-16 h-16" stroke-width="1.5" stroke="currentColor" fill="none" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"></path>
+            </svg>
+        </a>
+    </nav>
+    <main class="grid place-content-center h-full">
 
-        <div class="bg-white shadow sm:rounded-lg">
+
+        <div class="bg-white shadow sm:rounded-lg h-full">
             <div class="px-4 py-5 sm:p-6">
                 <h1 class="text-base font-semibold leading-6 text-gray-900">Add Web App</h1>
                 <div class="mt-2 max-w-xl text-sm text-gray-500">
@@ -37,7 +47,7 @@
                 </form>
             </div>
         </div>
-    </article>
+    </main>
 
 </body>
 
