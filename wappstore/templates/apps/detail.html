@@ -10,7 +10,7 @@
     <link href="static/output.css" rel="stylesheet">
 </head>
 
-<body class="p-4">
+<body>
     <nav>
         <a href="/apps"
             class="rounded-full block px-2.5 py-1 text-xs font-semibold text-indigo-600 hover:text-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
@@ -20,14 +20,50 @@
             </svg>
         </a>
     </nav>
-    <p>{{ id }}</p>
-    <p>{{ name }}</p>
-    <p>{{ description }}</p>
-    <p>{{ source }}</p>
-    {% for screenshot in screenshots %}
-    <img src="{{ screenshot.source }}">
-    {% endfor %}
-    <img src="{{ source }}" width="300">
+    <!-- <p>{{ id }}</p> -->
+    <!-- <p>{{ source }}</p> -->
+    <main class="mx-auto px-4 sm:px-6 lg:px-8">
+        <article class="mx-auto max-w-7xl space-y-4">
+            <header class="flex flex-wrap">
+                <img class="inline w-40" src="{{ source }}">
+                <h1 class="text-7xl font-bold text-slate-900">
+                    {{ name }}
+                </h1>
+            </header>
+            <section>
+                <a href="{{ start_url }}"
+                    class="rounded-full bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                    Get
+                </a>
+
+            </section>
+            <section class="overflow-y-scroll flex gap-4 max-h snap-x">
+                {% for screenshot in screenshots %}
+                <img class="rounded-3xl max-h-96 snap-start" src="{{ screenshot.source }}">
+                {% endfor %}
+            </section>
+            <section>
+                <h2 class="text-2xl font-semibold text-slate-900 leading-loose">Description</h2>
+                <p class="text-lg text-slate-800 font-normal">{{ description }}</p>
+            </section>
+            <section>
+                <h2 class="text-2xl font-semibold text-slate-900 leading-loose">Categories</h2>
+
+                <ul class="space-x-4">
+                    {% for category in categories %}
+                    <li class="inline">
+                        <a href="/categories/{{ category }}"
+                            class="rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                            {{ category }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+            </section>
+        </article>
+    </main>
+
 </body>
 
 </html>

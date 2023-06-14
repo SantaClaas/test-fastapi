@@ -58,7 +58,7 @@ def ensure_is_absolute(url: str, host: str):
     return urlunsplit(("https", host, url, "", ""))
 
 
-def getIconUrl(app: models.App):
+def getPrimaryIconUrl(app: models.App):
     # We use the last one declared that is appropiate as per spec https://w3c.github.io/manifest/#icons-member
     # Appropiate for us in this case is purpose not monochrome and maskable
     icon = list(filter(lambda icon: icon.purpose == "any", app.icons))[-1]
@@ -73,7 +73,7 @@ def root(request: Request, database: Session = Depends(get_database)):
     apps = map(lambda app:
                {"name": app.name,
                 "description": app.description,
-                "icon_url": getIconUrl(app),
+                "icon_url": getPrimaryIconUrl(app),
                 "id": app.id,
                 "categories": map(lambda category: category.name, app.categories)},
                crud.get_apps(database))
@@ -95,9 +95,11 @@ def view_app(request: Request, app_id: str, database: Session = Depends(get_data
         # TODO return not found page (can I do that with 404 status code and the browser not breaking?)
         return templates.TemplateResponse("apps/detail.html", {"request": request, "id": web_app.id, "name": web_app.name})
 
-    # TODO check if image url is absolute or relative
     # Build image source url
-    source = getIconUrl(web_app)
+    source = getPrimaryIconUrl(web_app)
+
+    for screenshot in web_app.screenshots:
+        screenshot.source = ensure_is_absolute(screenshot.source, web_app.id)
 
     # Render template
     return templates.TemplateResponse(
@@ -107,7 +109,9 @@ def view_app(request: Request, app_id: str, database: Session = Depends(get_data
          "name": web_app.name,
          "description": web_app.description,
          "source": source,
-         "screenshots": web_app.screenshots
+         "screenshots": web_app.screenshots,
+         "categories": web_app.categories,
+         "start_url": web_app.start_url
          })
 
 
