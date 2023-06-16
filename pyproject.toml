@@ -19,6 +19,7 @@ jinja2 = "^3.1.2"
 python-multipart = "^0.0.6"
 # Make http requests eaiser (urlopen is hard to work with or I am unfamiliar with it so currently it is annoying)
 httpx = "^0.24.1"
+marshmallow = "^3.19.0"
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^2.17.4"
