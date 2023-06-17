@@ -6,8 +6,9 @@ from .database import Base
 app_category = Table(
     "app_category",
     Base.metadata,
-    Column("app_id", ForeignKey("apps.id"), primary_key=True),
-    Column("category_name", ForeignKey("categories.name"), primary_key=True)
+    Column("app_id", ForeignKey("apps.id", ondelete="CASCADE"), primary_key=True),
+    Column("category_name", ForeignKey(
+        "categories.name", ondelete="CASCADE"), primary_key=True)
 )
 
 
@@ -23,8 +24,7 @@ class App(Base):
     # Required manifest members
     name = Column(String)
     # (icons, in other table)
-    icons = relationship("Icon", back_populates="app",
-                         cascade="all, delete-orphan")
+    icons = relationship("Icon", cascade="all, delete-orphan")
     start_url = Column(String)
     # (display and/or display_override, currently not needed by us)
 
@@ -35,7 +35,7 @@ class App(Base):
         "Category", back_populates="apps", secondary=app_category)
 
     screenshots = relationship(
-        "Screenshot", back_populates="app", cascade="all, delete-orphan")
+        "Screenshot", cascade="all, delete-orphan", passive_deletes=True)
     # direction = Column(String, default="auto")
     # # The language of the manifests localizable members
     # language = Column(String, nullable=True)
@@ -55,7 +55,7 @@ class App(Base):
 class Icon(Base):
     __tablename__ = "icons"
     id = Column(Integer, primary_key=True, index=True)
-    app_id = Column(String, ForeignKey("apps.id"))
+    app_id = Column(String, ForeignKey("apps.id", ondelete="CASCADE"))
     source = Column(String)
     # https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#sizes
     # Sizes is either a list with sizes separated by spaces or "any". Normalization rules would require this to be in a
@@ -69,7 +69,7 @@ class Icon(Base):
     # Also limited to "monochrome", "maskable" and "any" (default)
     purpose = Column(String, default="any")
 
-    app = relationship("App", back_populates="icons")
+    # app = relationship("App", back_populates="icons")
 
 
 class Category(Base):
@@ -87,11 +87,12 @@ class Screenshot(Base):
     __tablename__ = "screenshots"
 
     id = Column(Integer, primary_key=True, index=True)
-    app_id = Column(String, ForeignKey("apps.id"))
+    app_id = Column(String, ForeignKey("apps.id", ondelete="CASCADE"))
     source = Column(String)
     # This should be split up later since it is not atomic to follow normalization rules
     sizes = Column(String)
     # This should refer to MIME types
     type = Column(String)
 
-    app = relationship("App", back_populates="screenshots")
+    # app = relationship("App", back_populates="screenshots",
+    #                    cascade="all, delete")

@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
 import httpx
 from .models import ManifestSchema, Manifest
+
 # Create tables
 # We just delete and recreate the database every new start and after changes to iterate quickly. In a real app we would
 # have to implement migrations (apparantly this is posible with "Alembic")

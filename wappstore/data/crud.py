@@ -19,7 +19,9 @@ def create_app(session: Session, app: models.App):
 
 
 def delete_app(session: Session, app_id: str):
-    session.query(models.App).filter_by(id=app_id).delete()
+    app = session.query(models.App).filter_by(id=app_id).first()
+    session.delete(app)
+
     session.commit()
 
 
