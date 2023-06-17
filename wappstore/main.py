@@ -42,21 +42,21 @@ def fetch_app_details(manifest_url: str):
     # TODO fail if no content type
     # If response is HTML, find url to manifest
     content_type: str = response.headers.get("content-type")
-    manifest_url = manifest_url
     if content_type.startswith("text/html"):
-
         # This should be improved later as we read and allocate the whole content but we only need a small section from
         # the head
         content = response.text
-        manifest_url, error = extract_manifest_url(content)
+        new_manifest_url, error = extract_manifest_url(content)
         if error is not None:
             # TODO add error to template
             return error
 
         # Get manifest
-        manifest_url = ensure_is_absolute(manifest_url, components.netloc)
-        response = httpx.get(manifest_url)
+        new_manifest_url = ensure_is_absolute(
+            new_manifest_url, components.netloc + components.path)
+        response = httpx.get(new_manifest_url)
         content_type = response.headers.get("content-type")
+        manifest_url = new_manifest_url
         # It is still technically possible that the server returns a valid manifest with wrong content type but we
         # assume this is very unlikely
         if not content_type.startswith("application/manifest+json") and not content_type.startswith("application/json"):
@@ -134,6 +134,7 @@ apps_to_seed = [
     "twitter.com",
     "pass.claas.dev",
     "social.claas.dev",
+    "yqnn.github.io/svg-path-editor/"
 ]
 
 # Prepend scheme which should always be https
@@ -146,10 +147,12 @@ def seed_apps():
     session = SessionLocal()
     for url in apps_to_seed:
         components = urlparse(url)
-        app_id = components.netloc
+        # App id should be host and path
+        app_id = components.netloc + components.path
         if crud.get_app(session, app_id):
             continue
 
+        print("Seeding", url)
         manifest_or_error = fetch_app_details(url)
         if isinstance(manifest_or_error, str):
             # Error logging is probably done differently but for now just print
@@ -168,7 +171,6 @@ def lifespan(app: FastAPI):
     # Seed data
     seed_apps()
     yield
-    print("🍻")
 
 
 # App initialization(?)
@@ -203,7 +205,8 @@ def ensure_is_absolute(url: str, host: str):
 def getPrimaryIconUrl(app: models.App):
     # We use the last one declared that is appropiate as per spec https://w3c.github.io/manifest/#icons-member
     # Appropiate for us in this case is purpose not monochrome and maskable
-    icon = list(filter(lambda icon: icon.purpose == "any", app.icons))[-1]
+    icon = list(
+        filter(lambda icon: "any" in icon.purpose.split(), app.icons))[-1]
 
     return ensure_is_absolute(icon.source, app.id)
 
@@ -235,7 +238,7 @@ def delete_app(app_id: str, database: Session = Depends(get_session)):
     return RedirectResponse("/apps/delete", status_code=status.HTTP_303_SEE_OTHER)
 
 
-@app.get("/apps/{app_id}", response_class=HTMLResponse)
+@app.get("/apps/{app_id:path}", response_class=HTMLResponse)
 def view_app(request: Request, app_id: str, database: Session = Depends(get_session)):
     # Get app
     web_app = crud.get_app(database, app_id)

@@ -77,13 +77,13 @@ class Manifest:
     Describes a web app manifest
     """
     name: str
-    description: str
+    description: str | None
     start_url: str
     icons: list[Icon]
     categories: list[str]
     screenshots: list[Screenshot]
 
-    def __init__(self, name: str, description: str, start_url: str, icons: list[Icon], categories: list[str] = [], screenshots: list[Screenshot] = []) -> None:
+    def __init__(self, name: str, start_url: str, icons: list[Icon], categories: list[str] = [], screenshots: list[Screenshot] = [], description: str | None = None) -> None:
         self.name = name
         self.description = description
         self.start_url = start_url
