@@ -83,7 +83,7 @@ class Manifest:
     categories: list[str]
     screenshots: list[Screenshot]
 
-    def __init__(self, name: str, description: str, start_url: str, icons: list[Icon], categories: list[str], screenshots: list[Screenshot]) -> None:
+    def __init__(self, name: str, description: str, start_url: str, icons: list[Icon], categories: list[str] = [], screenshots: list[Screenshot] = []) -> None:
         self.name = name
         self.description = description
         self.start_url = start_url

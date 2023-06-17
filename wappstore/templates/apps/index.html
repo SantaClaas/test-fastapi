@@ -88,7 +88,7 @@
 
                 </section>
 
-                {% if is_delete %}
+                {% if not is_delete %}
                 <a href="apps/{{ app['id'] }}" class="absolute inset-0 focus:outline-none ">
                     <span class="sr-only">View details for {{ app["name"] }} </span>
                 </a>

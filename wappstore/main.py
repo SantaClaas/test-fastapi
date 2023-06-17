@@ -1,11 +1,10 @@
 import uvicorn
-from typing import Annotated, Literal
+from typing import Annotated
 from os.path import dirname, abspath, join
 from fastapi import FastAPI, Form, Depends, Request
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from urllib.parse import urlparse, urlunsplit
-import json
 import starlette.status as status
 from .data.models import Base
 from .data import crud, models
@@ -22,10 +21,10 @@ from .models import ManifestSchema, Manifest
 Base.metadata.create_all(bind=engine)
 
 
-def fetch_app_details(url: str):
+def fetch_app_details(manifest_url: str):
     # Get manifest from user provided url
-    components = urlparse(url)
-    response = httpx.get(url)
+    components = urlparse(manifest_url)
+    response = httpx.get(manifest_url)
 
     # Twitter sets a cookie in a redirect
     # TODO change to "if page wants to set cookie"
@@ -38,12 +37,12 @@ def fetch_app_details(url: str):
 
         # TODO fail if no cookie
         headers = {"Cookie": cookie.split(';')[0]}
-        response = httpx.get(url, headers=headers)
+        response = httpx.get(manifest_url, headers=headers)
 
     # TODO fail if no content type
     # If response is HTML, find url to manifest
     content_type: str = response.headers.get("content-type")
-
+    manifest_url = manifest_url
     if content_type.startswith("text/html"):
 
         # This should be improved later as we read and allocate the whole content but we only need a small section from
@@ -69,7 +68,7 @@ def fetch_app_details(url: str):
     schema = ManifestSchema()
     result: Manifest = schema.loads(response.text)
     print("Result", result)
-    return result
+    return result, manifest_url
 
 
 def save_to_database(session: Session, app_id: str, manifest_url: str, manifest: Manifest):
@@ -131,6 +130,7 @@ def get_session():
 
 
 apps_to_seed = [
+    # Twitter uses redirect to set cookie
     "twitter.com",
     "pass.claas.dev",
     "social.claas.dev",
@@ -138,17 +138,35 @@ apps_to_seed = [
 
 # Prepend scheme which should always be https
 apps_to_seed = map(
-    lambda url: urlunsplit(("https", url, "", "", "")),
+    lambda app_id: (urlunsplit(("https", app_id, "", "", ""))),
     apps_to_seed)
 
 
-def lifespan(app: FastAPI):
+def seed_apps():
     session = SessionLocal()
+    for url in apps_to_seed:
+        components = urlparse(url)
+        app_id = components.netloc
+        if crud.get_app(session, app_id):
+            continue
 
-    print("🤠", session, list(crud.get_apps(session)))
+        manifest_or_error = fetch_app_details(url)
+        if isinstance(manifest_or_error, str):
+            # Error logging is probably done differently but for now just print
+            print(
+                f"Error while fetching manifest for {app_id}", manifest_or_error)
+
+            continue
+
+        manifest, manifest_url = manifest_or_error
+        save_to_database(session, app_id, manifest_url, manifest)
 
     session.close()
+
+
+def lifespan(app: FastAPI):
     # Seed data
+    seed_apps()
     yield
     print("🍻")
 
@@ -242,7 +260,8 @@ def view_app(request: Request, app_id: str, database: Session = Depends(get_sess
          "source": source,
          "screenshots": web_app.screenshots,
          "categories": web_app.categories,
-         "start_url": web_app.start_url
+         "start_url": ensure_is_absolute(web_app.start_url, web_app.id),
+         "manifest_url": ensure_is_absolute(web_app.manifest_url, web_app.id)
          })
 
 
@@ -295,12 +314,13 @@ def create_app(request: Request, url: Annotated[str, Form(alias="url")], session
         # TODO use templating to add error of already created with url to app page
         return RedirectResponse(f"/apps/{app_id}", status_code=status.HTTP_303_SEE_OTHER)
 
-    manifest_or_error = fetch_app_details(url)
+    manifest_or_error, manifest_url = fetch_app_details(url)
     if manifest_or_error == "Could not find manifest url" or manifest_or_error == "Could not find manifest url" or manifest_or_error == "Invalid response type":
         # TODO errror UI
         return templates.TemplateResponse("apps/new.html", {"request": request})
 
-    save_to_database(session, app_id, url, manifest_or_error)
+    manifest, manifest_url = manifest_or_error
+    save_to_database(session, app_id, manifest_url, manifest)
 
     # Return user to new page for app
 
