@@ -4,12 +4,11 @@ from os.path import dirname, abspath, join
 from fastapi import FastAPI, Form, Depends, Request
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from urllib.parse import urlparse, urlunsplit
+from urllib.parse import urlparse, urlunsplit, urljoin
 import starlette.status as status
 from .data.models import Base
 from .data import crud, models
 from .data.database import SessionLocal, engine
-from sqlalchemy import event
 from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
 import httpx
@@ -21,23 +20,15 @@ from .models import ManifestSchema, Manifest
 Base.metadata.create_all(bind=engine)
 
 
-def fetch_app_details(manifest_url: str):
+def fetch_app_details(user_provided_url: str):
     # Get manifest from user provided url
-    components = urlparse(manifest_url)
-    response = httpx.get(manifest_url)
+    client = httpx.Client()
 
-    # Twitter sets a cookie in a redirect
-    # TODO change to "if page wants to set cookie"
-    # TODO add maximum retry count to not loop endlessly
-    while response.status_code == httpx.codes.FOUND:
-        new_url = response.headers["location"]
-        cookie: str = response.headers.get("Set-Cookie")
-        # Use same host as before if it is relative
-        new_url = ensure_is_absolute(new_url, components.netloc)
-
-        # TODO fail if no cookie
-        headers = {"Cookie": cookie.split(';')[0]}
-        response = httpx.get(manifest_url, headers=headers)
+    # Twitter sets a cookie in a redirect, httpx seems to set the cookie automatically
+    request = client.build_request("GET", user_provided_url)
+    while request is not None:
+        response = client.send(request)
+        request = response.next_request
 
     # TODO fail if no content type
     # If response is HTML, find url to manifest
@@ -52,11 +43,12 @@ def fetch_app_details(manifest_url: str):
             return error
 
         # Get manifest
-        new_manifest_url = ensure_is_absolute(
-            new_manifest_url, components.netloc + components.path)
-        response = httpx.get(new_manifest_url)
+        # new_manifest_url = ensure_is_absolute(new_manifest_url, with_path)
+        # Ensure is absolute
+        new_manifest_url = urljoin(user_provided_url, new_manifest_url)
+        response = client.get(new_manifest_url, follow_redirects=True)
         content_type = response.headers.get("content-type")
-        manifest_url = new_manifest_url
+        user_provided_url = new_manifest_url
         # It is still technically possible that the server returns a valid manifest with wrong content type but we
         # assume this is very unlikely
         if not content_type.startswith("application/manifest+json") and not content_type.startswith("application/json"):
@@ -67,8 +59,7 @@ def fetch_app_details(manifest_url: str):
     # TODO handle deserialization error
     schema = ManifestSchema()
     result: Manifest = schema.loads(response.text)
-    print("Result", result)
-    return result, manifest_url
+    return result, str(response.url)
 
 
 def save_to_database(session: Session, app_id: str, manifest_url: str, manifest: Manifest):
@@ -134,7 +125,11 @@ apps_to_seed = [
     "twitter.com",
     "pass.claas.dev",
     "social.claas.dev",
-    "yqnn.github.io/svg-path-editor/"
+    "yqnn.github.io/svg-path-editor/",
+    "jakearchibald.github.io/svgomg/",
+    "youtube.com",
+    "coronavirus.app"
+
 ]
 
 # Prepend scheme which should always be https
@@ -232,7 +227,7 @@ def view_new_app(request: Request):
     return templates.TemplateResponse("apps/new.html", {"request": request})
 
 
-@app.get('/apps/{app_id}/delete')
+@app.get('/apps/delete/{app_id:path}')
 def delete_app(app_id: str, database: Session = Depends(get_session)):
     crud.delete_app(database, app_id)
     return RedirectResponse("/apps/delete", status_code=status.HTTP_303_SEE_OTHER)
@@ -268,11 +263,44 @@ def view_app(request: Request, app_id: str, database: Session = Depends(get_sess
          })
 
 
+def find_manifest_rel(content: str):
+
+    for rel_kind in ["rel=\"manifest\"", "rel=manifest", "rel='manifest'"]:
+        index = content.find(rel_kind)
+        if index != -1:
+            return index
+
+    return -1
+
+
+def extract_href_from_link(link_elemt: str):
+    # The order of " " (space) and  ">" is important to not cut to end of link instantly
+    for href_start, href_allowed_ends in [("href=\"", ['"']), ("href='", ["'"]), ("href=", [" ", ">"])]:
+        # Find start
+        key_index = link_elemt.find(href_start)
+        if key_index == -1:
+            continue
+
+        value_start = key_index + len(href_start)
+        value_end = None
+        # Find end
+        for allowed_end in href_allowed_ends:
+            value_end = link_elemt.find(allowed_end, value_start)
+            if value_end != -1:
+                break
+
+        if value_end == -1:
+            return None
+        return link_elemt[value_start:value_end]
+    return None
+
+
 def extract_manifest_url(content: str):
+
     # Extract manifest url
     # We need to find something like <link rel="manifest" href="..."> but attributes can be in different order
     # TODO might need to add check because simple quotes are allowed too?
-    relationship_index = content.find("rel=\"manifest\"")
+    relationship_index = find_manifest_rel(content)
     if relationship_index == -1:
         # A tuple of result and error message
         return None, "Could not find manifest url"
@@ -283,21 +311,12 @@ def extract_manifest_url(content: str):
     # Only search in string before relationship since relationship is in the middle of the link element
     element_start = content.rfind("<", 0, relationship_index)
 
-    link_element = content[element_start:element_end]
+    link_element = content[element_start:element_end+1]
 
-    href_key = "href=\""
-    # Find href in link element
-    href_key_start = link_element.find(href_key)
-
-    if href_key_start == -1:
-        # TODO fail if invalid and no href
+    href = extract_href_from_link(link_element)
+    if href is None:
         return None, "Invalid manifest link, missing href"
 
-    href_key_end = href_key_start + len(href_key)
-    # Find end of href
-    end_href = link_element.find('"', href_key_end)
-
-    href = link_element[href_key_end:end_href]
     return href, None
 
 
@@ -310,14 +329,14 @@ def create_app(request: Request, url: Annotated[str, Form(alias="url")], session
     # TODO find a way to avoid duplicate apps from hosts that have the same web manifest by using a more qualified
     # comparison of manifests like comparing a hash or other distinguishing characteristics
     components = urlparse(url)
-    app_id = components.netloc
+    app_id = components.netloc + components.path
 
     # If app exists, return add app view with error message
     if crud.get_app(session, app_id):
         # TODO use templating to add error of already created with url to app page
         return RedirectResponse(f"/apps/{app_id}", status_code=status.HTTP_303_SEE_OTHER)
 
-    manifest_or_error, manifest_url = fetch_app_details(url)
+    manifest_or_error = fetch_app_details(url)
     if manifest_or_error == "Could not find manifest url" or manifest_or_error == "Could not find manifest url" or manifest_or_error == "Invalid response type":
         # TODO errror UI
         return templates.TemplateResponse("apps/new.html", {"request": request})

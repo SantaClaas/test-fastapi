@@ -20,8 +20,6 @@
             </svg>
         </a>
     </nav>
-    <!-- <p>{{ id }}</p> -->
-    <!-- <p>{{ source }}</p> -->
     <main class="mx-auto px-4 sm:px-6 lg:px-8">
         <article class="mx-auto max-w-7xl space-y-4">
             <header class="flex flex-wrap">
@@ -42,10 +40,12 @@
                 <img class="rounded-3xl max-h-96 snap-start" src="{{ screenshot.source }}">
                 {% endfor %}
             </section>
+            {% if description %}
             <section>
                 <h2 class="text-2xl font-semibold text-slate-900 leading-loose">Description</h2>
                 <p class="text-lg text-slate-800 font-normal">{{ description }}</p>
             </section>
+            {% endif %}
             {% if categories %}
             <section>
                 <h2 class="text-2xl font-semibold text-slate-900 leading-loose">Categories</h2>

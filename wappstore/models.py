@@ -11,11 +11,11 @@ class Icon:
     """
     src: str
     sizes: str
-    type: str
-    label: str
+    type: str | None
+    label: str | None
     purpose: str
 
-    def __init__(self, src: str, sizes: str, type: str, label: str | None = None, purpose: str = "any") -> None:
+    def __init__(self, src: str, sizes: str, type: str | None = None, label: str | None = None, purpose: str = "any") -> None:
         self.src = src
         self.sizes = sizes
         self.type = type
