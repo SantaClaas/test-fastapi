@@ -77,19 +77,18 @@ def save_to_database(session: Session, app_id: str, manifest_url: str, manifest:
 
     # Persist categories
     # IDK how to avoid unique insert issue with the ORM so we filter categories to include only unique categories
-    existing_categories = frozenset(map(
-        lambda category: category.name, crud.get_categories(session)))
+    existing_categories = dict(map(
+        lambda category: (category.name, category), crud.get_categories(session)))
 
-    categories = filter(
-        lambda category: category not in existing_categories,
-        manifest.categories)
+    def get_or_create(category_name: str):
+        if category_name in existing_categories:
+            return existing_categories[category_name]
 
-    # To model
-    categories = list(map(lambda category: models.Category(
-        name=category), categories))
+        return models.Category(name=category_name)
+
+    categories = list(map(get_or_create, manifest.categories))
 
     # Persist screenshots
-
     screenshots = list(
         map(lambda screenshot: models.Screenshot(
             app_id=app_id,
@@ -121,7 +120,6 @@ def get_session():
 
 
 apps_to_seed = [
-    # Twitter uses redirect to set cookie
     "twitter.com",
     "pass.claas.dev",
     "social.claas.dev",
