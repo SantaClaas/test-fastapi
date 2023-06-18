@@ -57,10 +57,14 @@
                 <ul class="space-x-4">
                     {% for category in categories %}
                     <li class="inline">
-                        <a href="/categories/{{ category }}"
+                        {# <a href="/categories/{{ category }}"
                             class="rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
                             {{ category }}
-                        </a>
+                        </a> #}
+                        <div
+                            class="rounded-full inline bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                            {{ category }}
+                        </div>
                     </li>
                     {% endfor %}
                 </ul>
