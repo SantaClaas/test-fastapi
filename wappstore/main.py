@@ -128,8 +128,8 @@ apps_to_seed = [
     "yqnn.github.io/svg-path-editor/",
     "jakearchibald.github.io/svgomg/",
     "youtube.com",
-    "coronavirus.app"
-
+    "coronavirus.app",
+    "recorder.google.com",
 ]
 
 # Prepend scheme which should always be https
@@ -152,7 +152,7 @@ def seed_apps():
         if isinstance(manifest_or_error, str):
             # Error logging is probably done differently but for now just print
             print(
-                f"Error while fetching manifest for {app_id}", manifest_or_error)
+                f"Error while seeding {app_id}", manifest_or_error)
 
             continue
 
