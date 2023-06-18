@@ -130,6 +130,8 @@ apps_to_seed = [
     "youtube.com",
     "coronavirus.app",
     "recorder.google.com",
+    "notepad.js.org",
+    "squoosh.app"
 ]
 
 # Prepend scheme which should always be https
