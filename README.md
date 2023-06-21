@@ -38,6 +38,7 @@ TODO links
 Things I might want to add or try out
 - Try installing third party apps by returning their manifest url (with adapted links) as manifest in the HTML for the browser to pick up
 - Use picture element with source elements representing the manifest icons to let browser decide which one to load to improve speed
+- Charge money for premium apps. This would allow for premium Web apps which are currently hard to implement as developers would need their own billing and user authZ/authN. Premium apps can then upon opening verify through OpenID Connect with our System that the User signed in to the appstore has bought the app and redirect seemlessly to the app. This could also be an Idea to offer an OpenID Connect SaaS through a different angle than other offerings currently available. Current offerings require to connect it with and app but we could offer the app with the auth system all in one.
 
 ## Known Issues
 When starting the container VS Code might complain that the Python Extension has not loaded or needs to be installed. Just follow VS Code recommendations and you should be fine.
