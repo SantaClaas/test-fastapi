@@ -28,6 +28,9 @@ apps_to_seed = map(
 
 
 def seed_apps():
+    """
+    Seeds predefined apps by fetching their manifest
+    """
     session = SessionLocal()
     for url in apps_to_seed:
         components = urlparse(url)
