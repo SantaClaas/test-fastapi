@@ -1,6 +1,9 @@
+"""
+The main starting point and module of the web app
+"""
+from os.path import dirname, abspath, join
 import uvicorn
 from typing import Annotated
-from os.path import dirname, abspath, join
 from fastapi import FastAPI, Form, Depends, Request
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles

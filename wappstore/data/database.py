@@ -1,3 +1,6 @@
+"""
+A module to set up the database
+"""
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from sqlalchemy import create_engine

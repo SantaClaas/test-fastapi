@@ -1,3 +1,7 @@
+"""
+A module to contain all models that describe the database structure
+"""
+
 from sqlalchemy import Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 

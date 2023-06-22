@@ -1,6 +1,7 @@
+"""
+A module to simplify CRUD operations on the database
+"""
 from sqlalchemy.orm import Session
-
-from typing import Iterable
 from . import models
 
 
