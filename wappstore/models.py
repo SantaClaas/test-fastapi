@@ -6,8 +6,6 @@ from marshmallow import EXCLUDE, Schema, fields, post_load
 
 # Models for JSON deserialization
 
-# TODO define ImageResource base class for Screenshot and Icon
-
 
 class ImageResource:
     """

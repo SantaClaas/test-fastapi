@@ -5,6 +5,7 @@ A module to contain all models that describe the database structure
 from sqlalchemy import Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
+from wappstore.url import ensure_is_absolute
 from .database import Base
 
 
@@ -59,6 +60,17 @@ class App(Base):
         "Screenshot", cascade="all, delete-orphan", passive_deletes=True)
 
     icons = relationship("Icon", cascade="all, delete-orphan")
+
+    def get_primary_icon_url(self):
+        """
+        Get the icon that should be used as primary icon as defined by spec
+        """
+        # We use the last one declared that is appropiate as per spec https://w3c.github.io/manifest/#icons-member
+        # Appropiate for us in this case is purpose not monochrome and maskable
+        icon = list(
+            filter(lambda icon: "any" in icon.purpose.split(), self.icons))[-1]
+
+        return ensure_is_absolute(icon.source, self.id)
 
 # See https://developer.mozilla.org/en-US/docs/Web/Manifest/icons and https://w3c.github.io/manifest/#icons-member and
 # https://w3c.github.io/manifest/#manifest-image-resources and https://www.w3.org/TR/image-resource/#dfn-image-resource
