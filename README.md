@@ -33,6 +33,17 @@ TODO links
 - Docker
 - W3C Web Manifesdt documentation
 - MDN documentation
+## 🤖 Used Tech "Tech Stack"
+- Docker Image
+- DevContainer
+- Azure Hosting
+- Poetry
+- Publish PyPi
+- Jinja2
+- TailwindCSS
+- TailwindUI
+    - Used as template and modified for usage to quickl develop user interface
+
 
 ## ✨ Random Idea List ✨
 Things I might want to add or try out
