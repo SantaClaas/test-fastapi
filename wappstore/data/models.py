@@ -3,9 +3,8 @@ from sqlalchemy.orm import relationship
 
 from .database import Base
 
-"""
-A join table connecting Apps and Categories as it is a many to many relationship
-"""
+
+# A join table connecting Apps and Categories as it is a many to many relationship
 app_category = Table(
     "app_category",
     Base.metadata,
