@@ -6,12 +6,12 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from urllib.parse import urlparse, urlunsplit, urljoin
 import starlette.status as status
-from .data.models import Base
-from .data import crud, models
-from .data.database import SessionLocal, engine
 from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
 import httpx
+from .data.database import SessionLocal, engine
+from .data.models import Base
+from .data import crud, models
 from .models import ManifestSchema, Manifest
 
 # Create tables
