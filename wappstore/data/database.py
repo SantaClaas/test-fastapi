@@ -20,8 +20,8 @@ Base = declarative_base()
 
 
 @event.listens_for(Engine, "connect")
-def enable_cascade(dbapi_connection, connection_record):
-    """"
+def enable_cascade(dbapi_connection, _):
+    """
     Cascade does not work without this and we need it for auto deleting icons and screenshots
     """
     cursor = dbapi_connection.cursor()

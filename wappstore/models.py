@@ -1,3 +1,6 @@
+"""
+Models and schemas for deserializing webmanifest JSON files
+"""
 from typing import Literal
 from marshmallow import EXCLUDE, Schema, fields, post_load
 
