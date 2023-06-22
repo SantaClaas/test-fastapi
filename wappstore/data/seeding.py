@@ -41,14 +41,14 @@ def seed_apps():
 
         # Should use proper logging
         print("Seeding", url)
-        manifest_or_error = fetch_app_details(url)
-        if isinstance(manifest_or_error, str):
+        try:
+            manifest = fetch_app_details(url)
+        except Exception as exception:
             print(
-                f"Error while seeding {app_id}", manifest_or_error)
-
+                f"Error while seeding {app_id}", exception)
             continue
 
-        manifest, manifest_url = manifest_or_error
+        manifest, manifest_url = manifest
         save_to_database(session, app_id, manifest_url, manifest)
 
     session.close()

@@ -144,7 +144,7 @@ def extract_manifest_url(content: str):
         # "Invalid manifest link, missing href"
         raise NoHrefError
 
-    return href, None
+    return href
 
 
 class NoContentTypeError(Exception):
