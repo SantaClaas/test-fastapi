@@ -102,6 +102,23 @@ def extract_href_from_link(link_elemt: str):
     return None
 
 
+class NoManifestRelError(Exception):
+    """
+    A searched HTML string has no link element that has "manifest" as relationship
+    e.g. rel="manifest"
+    The url does not link to a web app
+    Check if the HTML document contains a manifest link and that it doesn't get added by
+    client side code later due to localization or other reasons
+    """
+
+
+class NoHrefError(Exception):
+    """
+    A searched HTML string has a link element with the manifest relationship but no valid href
+    attribute or the code could not find it
+    """
+
+
 def extract_manifest_url(content: str):
     """
     Extracts the manifest url from an HTML content string
@@ -111,8 +128,8 @@ def extract_manifest_url(content: str):
     # TODO might need to add check because simple quotes are allowed too?
     relationship_index = find_manifest_rel(content)
     if relationship_index == -1:
-        # A tuple of result and error message
-        return None, "Could not find manifest url"
+        # "Could not find manifest url"
+        raise NoManifestRelError
 
     # Define boundaries
     element_end = content.find(">", relationship_index)
@@ -124,9 +141,28 @@ def extract_manifest_url(content: str):
 
     href = extract_href_from_link(link_element)
     if href is None:
-        return None, "Invalid manifest link, missing href"
+        # "Invalid manifest link, missing href"
+        raise NoHrefError
 
     return href, None
+
+
+class NoContentTypeError(Exception):
+    """
+    The server did not return a content type when fetching from the user provided url. It has to be either HTML or
+    Webmanifest JSON
+    The process is stopped even if the content is correctto not allow for misleading errors when attempting to
+    deserialize content that might not be JSON or HTML
+    """
+
+
+class InvalidResponseTypeError(Exception):
+    """
+    A web manifest url was found in the HTML from the provided url but after fetching the manifest from the manifest
+    url, the server did not respond with the content typ being "application/webmanifest+json" or "application/json".
+    The process is stopped even if the content is correct to not allow for misleading errors when attempting to
+    deserialize content that might not be JSON.
+    """
 
 
 def fetch_app_details(user_provided_url: str):
@@ -143,20 +179,18 @@ def fetch_app_details(user_provided_url: str):
         response = client.send(request)
         request = response.next_request
 
-    # TODO fail if no content type
+    content_type: str | None = response.headers.get("content-type")
+    if content_type is None:
+        raise NoContentTypeError
+
     # If response is HTML, find url to manifest
-    content_type: str = response.headers.get("content-type")
     if content_type.startswith("text/html"):
         # This should be improved later as we read and allocate the whole content but we only need a small section from
         # the head
         content = response.text
-        new_manifest_url, error = extract_manifest_url(content)
-        if error is not None:
-            # TODO add error to template
-            return error
+        new_manifest_url = extract_manifest_url(content)
 
         # Get manifest
-        # new_manifest_url = ensure_is_absolute(new_manifest_url, with_path)
         # Ensure is absolute
         new_manifest_url = urljoin(user_provided_url, new_manifest_url)
         response = client.get(new_manifest_url, follow_redirects=True)
@@ -165,11 +199,9 @@ def fetch_app_details(user_provided_url: str):
         # It is still technically possible that the server returns a valid manifest with wrong content type but we
         # assume this is very unlikely
         if not content_type.startswith("application/manifest+json") and not content_type.startswith("application/json"):
-            return "Invalid response type"
+            raise InvalidResponseTypeError
 
     # else if response is json+manifest, json, try deserialize manifest
-    # TODO validate manifest
-    # TODO handle deserialization error
     schema = ManifestSchema()
     result: Manifest = schema.loads(response.text)
     return result, str(response.url)

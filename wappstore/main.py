@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from wappstore.url import ensure_is_absolute
 from .data.seeding import seed_apps
-from .webmanifest import fetch_app_details, save_to_database
+from .webmanifest import InvalidResponseTypeError, NoContentTypeError, NoHrefError, NoManifestRelError, fetch_app_details, save_to_database
 from .data.database import SessionLocal, engine
 from .data.models import Base
 from .data import crud
@@ -142,24 +142,42 @@ def create_app(request: Request, url: Annotated[str, Form(alias="url")], session
     Returns to add app page with error on failure
     """
 
-    # TODO url validation
+    # Assuming URLs are valid
     # An application is defined by the manifest so these terms can be used interchangibly
 
     # We use the host as the id for the app
-    # TODO find a way to avoid duplicate apps from hosts that have the same web manifest by using a more qualified
     # comparison of manifests like comparing a hash or other distinguishing characteristics
     components = urlparse(url)
     app_id = components.netloc + components.path
 
     # If app exists, return add app view with error message
     if crud.get_app(session, app_id):
-        # TODO use templating to add error of already created with url to app page
+        # Could expand here to inform user that it exists already and that there was no new app created
         return RedirectResponse(f"/apps/{app_id}", status_code=status.HTTP_303_SEE_OTHER)
 
-    manifest_or_error = fetch_app_details(url)
-    if manifest_or_error == "Could not find manifest url" or manifest_or_error == "Could not find manifest url" or manifest_or_error == "Invalid response type":
-        # TODO errror UI
-        return templates.TemplateResponse("apps/new.html", {"request": request})
+    manifest_or_error = None
+
+    def with_error(error_message: str):
+        return templates.TemplateResponse("apps/new.html", {"request": request, "error_message": error_message})
+
+    try:
+        manifest_or_error = fetch_app_details(url)
+    except NoManifestRelError:
+        return with_error("""Sorry, could not find a reference to the webmanifest on that page.
+        Try the direct url to the manifest if you have it.""")
+    except NoHrefError:
+        return with_error("Sorry, the page does not seem to include a valid reference to a webmanifest")
+    except NoContentTypeError:
+        return with_error("Sorry, the server of that URL did not respond with information about it's content when we tried to load the page or webmanifest")
+    except InvalidResponseTypeError:
+        return with_error("Sorry, the server of that URL did not respond with the right type of content when we tried to load the webmanifest")
+
+    # Catch all errors for unforseen errors,
+    # I love programming languages where you can't see the error something might produce and the compiler doesn't tell
+    # you either. Not sure why pylint complains here either, should I not catch it at all and return cryptic JSON
+    # to the user?
+    except Exception:
+        return with_error("Sorry, could not get app from URL")
 
     manifest, manifest_url = manifest_or_error
     save_to_database(session, app_id, manifest_url, manifest)
