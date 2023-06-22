@@ -1,9 +1,10 @@
+"""
+Models and schemas for deserializing webmanifest JSON files
+"""
 from typing import Literal
 from marshmallow import EXCLUDE, Schema, fields, post_load
 
 # Models for JSON deserialization
-
-# TODO define ImageResource base class for Screenshot and Icon
 
 
 class ImageResource:
