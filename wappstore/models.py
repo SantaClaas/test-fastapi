@@ -1,3 +1,4 @@
+from typing import Literal
 from marshmallow import EXCLUDE, Schema, fields, post_load
 
 # Models for JSON deserialization
@@ -5,21 +6,31 @@ from marshmallow import EXCLUDE, Schema, fields, post_load
 # TODO define ImageResource base class for Screenshot and Icon
 
 
-class Icon:
-    """"
-    Describes an icon in a web app manifest
+class ImageResource:
+    """
+    Defines an image resource like in the W3C spec. Only exists as an abstract class currently to
+    provide correct fields to inheriting classes
     """
     src: str
-    sizes: str
-    type: str | None
+    sizes: str | None
     label: str | None
-    purpose: str
+    type: str | None
 
-    def __init__(self, src: str, sizes: str, type: str | None = None, label: str | None = None, purpose: str = "any") -> None:
+    def __init__(self, src: str, sizes: str | None, label: str | None, type: str | None = None) -> None:
         self.src = src
         self.sizes = sizes
         self.type = type
         self.label = label
+
+
+class Icon(ImageResource):
+    """"
+    Describes an icon in a web app manifest
+    """
+    purpose: str
+
+    def __init__(self, src: str, sizes: str, type: str | None = None, label: str | None = None, purpose: str = "any") -> None:
+        super().__init__(src, sizes, label, type)
         self.purpose = purpose
 
 
@@ -42,18 +53,15 @@ class IconSchema(Schema):
         return Icon(**data)
 
 
-class Screenshot:
+class Screenshot(ImageResource):
     """"
     Describes a screenshot in a web app manifest
     """
-    src: str
-    sizes: str
-    type: str
+    form_factor: Literal["wide", "narrow"] | None
 
-    def __init__(self, src: str, sizes: str, type: str) -> None:
-        self.src = src
-        self.sizes = sizes
-        self.type = type
+    def __init__(self, src: str, sizes: str | None,  type: str | None, label: str | None = None,  form_factor: Literal["wide", "narrow"] | None = None) -> None:
+        super().__init__(src, sizes, label, type)
+        self.form_factor = form_factor
 
 
 class ScreenshotSchema(Schema):
@@ -63,6 +71,8 @@ class ScreenshotSchema(Schema):
     src = fields.Str()
     sizes = fields.Str()
     type = fields.Str()
+    label = fields.Str()
+    form_factor = fields.Str()
 
     class Meta:
         unknown = EXCLUDE
