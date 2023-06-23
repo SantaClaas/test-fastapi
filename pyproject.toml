@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "wappstore"
-version = "0.0.0"
+version = "1.0.1"
 description = "Improve Web App discoverability"
 authors = ["Claas <claas.moehlmann@outlook.com>"]
 license = "Apache-2.0"
